@@ -15,17 +15,18 @@ func main() {
 	g.BasePath("/demo")
 
 	// 2. 注册多个路由组
-	g.Mount("/v1", classes.NewIndex())
+	// g.AddGroup("/v1", classes.NewIndex())
+	g.AddGroup("/v1").Handle(classes.NewIndex())
 
 	{
-		v2Router := g.Mount("/v2")
+		v2Router := g.AddGroup("/v2")
 		// 子路由注册中间件
 		// v2Router.Attach(middlewares.NewUser())
 
-		v2Router.Mount("/v3", classes.NewIndex())
+		v2Router.AddGroup("/v3", classes.NewIndex())
 
 	}
 
 	// 3. 启动 rum server
-	g.Launch()
+	g.Run()
 }

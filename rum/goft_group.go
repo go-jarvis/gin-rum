@@ -25,23 +25,21 @@ func newRumGroup(base *RumGroup, group string) *RumGroup {
 	}
 }
 
-// Mount 在 RumGroup 上绑定/注册 控制器
-func (grp *RumGroup) Mount(group string, classes ...ClassController) *RumGroup {
+// AddGroup 在 RumGroup 上绑定/注册 控制器
+func (grp *RumGroup) AddGroup(group string, classes ...ClassController) *RumGroup {
 	new := newRumGroup(grp, group)
-
 	for _, class := range classes {
 		new.Handle(class)
 	}
-
 	return new
 }
 
-// Attach 绑定/注册 中间件
-func (grp *RumGroup) Attach(fairs ...Fairing) {
-	grp.attach(fairs...)
+// Use 绑定/注册 中间件
+func (grp *RumGroup) Use(fairs ...Fairing) *RumGroup {
+	return grp.use(fairs...)
 }
 
-func (grp *RumGroup) attach(fairs ...Fairing) {
+func (grp *RumGroup) use(fairs ...Fairing) *RumGroup {
 	for _, fair := range fairs {
 		fair := fair
 
@@ -68,8 +66,10 @@ func (grp *RumGroup) attach(fairs ...Fairing) {
 		}
 
 		// 使用 中间件
-		grp.Use(handler)
+		grp.RouterGroup.Use(handler)
 	}
+
+	return grp
 }
 
 // Handle 重载 RumGroup 的 Handle 方法
