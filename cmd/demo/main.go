@@ -11,15 +11,21 @@ func main() {
 	g := rum.Default()
 	// g.Attach(&middlewares.User{})
 
-	// 2. 设置 base Path
-	g.BasePath("/demo")
+	g.Use(
+	// &middlewares.CorsMid{},
+	// middlewares.NewUserChecker(),
+	)
+
+	app := g.Group("demo")
 
 	// 2. 注册多个路由组
 	// g.AddGroup("/v1", classes.NewIndex())
-	g.Group("/v1").Handle(classes.NewIndex())
+	v1 := app.Group("/v1")
+	v1.Handle(classes.NewIndex())
+	v1.Handle(&classes.User{})
 
 	{
-		v2Router := g.Group("/v2")
+		v2Router := app.Group("/v2")
 		// 子路由注册中间件
 		// v2Router.Attach(middlewares.NewUser())
 
