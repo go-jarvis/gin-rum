@@ -4,6 +4,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+var _ IRumRouter = &Rum{}
+
 type Rum struct {
 	*gin.Engine
 	rootGrp *RumGroup
@@ -45,7 +47,11 @@ func (rum *Rum) Group(group string, classes ...ClassController) *RumGroup {
 }
 
 // Use 使用中间件
-func (rum *Rum) Use(fairs ...Fairing) *Rum {
+func (rum *Rum) Use(fairs ...Fairing) IRumRoutes {
 	rum.rootGrp.Use(fairs...)
 	return rum
+}
+
+func (rum *Rum) Handle(class ClassController) {
+	rum.rootGrp.Handle(class)
 }

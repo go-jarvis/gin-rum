@@ -7,6 +7,18 @@ import (
 	"github.com/tangx/ginbinder"
 )
 
+type IRumRouter interface {
+	IRumRoutes
+	Group(group string, classes ...ClassController) *RumGroup
+}
+
+type IRumRoutes interface {
+	Use(fairs ...Fairing) IRumRoutes
+	Handle(class ClassController)
+}
+
+var _ IRumRouter = &RumGroup{}
+
 type RumGroup struct {
 	*gin.RouterGroup
 }
@@ -35,11 +47,11 @@ func (grp *RumGroup) Group(group string, classes ...ClassController) *RumGroup {
 }
 
 // Use 绑定/注册 中间件
-func (grp *RumGroup) Use(fairs ...Fairing) *RumGroup {
+func (grp *RumGroup) Use(fairs ...Fairing) IRumRoutes {
 	return grp.use(fairs...)
 }
 
-func (grp *RumGroup) use(fairs ...Fairing) *RumGroup {
+func (grp *RumGroup) use(fairs ...Fairing) IRumRoutes {
 	for _, fair := range fairs {
 		fair := fair
 

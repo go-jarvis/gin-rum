@@ -20,8 +20,7 @@ func main() {
 
 	// 2. 注册多个路由组
 	// g.AddGroup("/v1", classes.NewIndex())
-	v1 := app.Group("/v1")
-	v1.Handle(classes.NewIndex())
+	v1 := app.Group("/v1", classes.NewIndex())
 	v1.Handle(&classes.User{})
 
 	{
