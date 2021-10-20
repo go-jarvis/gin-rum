@@ -1,6 +1,6 @@
 
 ### GET v2/v3/index
-GET http://127.0.0.1:8089/demo/v2/v3/index?name=zhangsan
+GET http://127.0.0.1:8089/demo/v2/v3/index?name=zhangsan123
 
 
 ### GET v1/index
