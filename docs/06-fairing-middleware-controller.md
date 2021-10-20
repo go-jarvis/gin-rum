@@ -4,9 +4,9 @@
 
 ## 中间件控制器
 
-在 [fairing.go](/goft/fairing.go) 定义接口 Fairing
+在 [fairing.go](/rum/fairing.go) 定义接口 Fairing
 
-可以认为 fairing 是中间件的控制器， 只需要对象实现 Fairing 接口， 实现具体的的中间件处理逻辑。 而具体的 `gin.HandleFunc` 有 goft 进行生成和管理。
+可以认为 fairing 是中间件的控制器， 只需要对象实现 Fairing 接口， 实现具体的的中间件处理逻辑。 而具体的 `gin.HandleFunc` 有 rum 进行生成和管理。
 
 ```go
 type Fairing interface {
@@ -40,16 +40,16 @@ func attachFairings(iroute gin.IRoutes, fairs ...Fairing) {
     1. 这里不应该传入 cc 备份给 Middleware 处理。
     2. 某些中间件 **功能本身** 需要修改 gin.Context 中的一些内容。
     3. 如果要避免类似中间件读取 body， 而导致业务逻辑失效的话
-2. 在 goft 作为框架， 在生成的 handler 中逻辑中 **不拦截错误**。 如果要对请求进行中断处理， 应该是中间件控制器本身的行为逻辑。 而中间件控制器本身有 `gin.Context` 作为参数， 本身也能完成终端。
+2. 在 rum 作为框架， 在生成的 handler 中逻辑中 **不拦截错误**。 如果要对请求进行中断处理， 应该是中间件控制器本身的行为逻辑。 而中间件控制器本身有 `gin.Context` 作为参数， 本身也能完成终端。
 3. 中间件是绑定到 **路由** 上面的， 在 gin 中， 实现路由的接口 `gin.IRoutes` ， 因此在 `attachFairing` 函数中作为了第一个参数传入。 这里可以是 `gin.Engine` 也可以是 `gin.RouterGroup`
 
 ```go
-func (goft *Goft) Attach(fairs ...Fairing) {
-	attachFairings(goft, fairs...)
+func (rum *Rum) Attach(fairs ...Fairing) {
+	attachFairings(rum, fairs...)
 }
 
 // Attach 绑定/注册 中间件
-func (gg *GoftGroup) Attach(fairs ...Fairing) {
+func (gg *RumGroup) Attach(fairs ...Fairing) {
 	attachFairings(gg, fairs...)
 }
 ```
@@ -92,14 +92,14 @@ func (user User) OnRequest(c *gin.Context) (err error) {
 package main
 
 import (
-	"github.com/tangx-labs/gin-goft/cmd/demo/classes"
-	"github.com/tangx-labs/gin-goft/cmd/demo/middlewares"
-	"github.com/tangx-labs/gin-goft/goft"
+	"github.com/tangx-labs/gin-rum/cmd/demo/classes"
+	"github.com/tangx-labs/gin-rum/cmd/demo/middlewares"
+	"github.com/tangx-labs/gin-rum/rum"
 )
 
 func main() {
 
-	g := goft.Default()
+	g := rum.Default()
 
 	// 全局中间件
 	g.Attach(&middlewares.User{})

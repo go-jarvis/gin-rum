@@ -3,7 +3,7 @@ package classes
 import (
 	"fmt"
 
-	"github.com/tangx-labs/gin-goft/httpx"
+	"github.com/go-jarvis/gin-rum/httpx"
 )
 
 // Index
@@ -26,5 +26,5 @@ func (index *Index) Handler() (interface{}, error) {
 		return nil, fmt.Errorf("invalid user: %s", index.Name)
 	}
 
-	return "hello, gin-goft", nil
+	return "hello, gin-rum", nil
 }

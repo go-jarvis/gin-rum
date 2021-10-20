@@ -10,7 +10,7 @@ func main() {
 
 	r.GET("/", func(c *gin.Context) {
 		c.JSON(200, map[string]string{
-			"hello": "gin-goft",
+			"hello": "gin-rum",
 		})
 	})
 

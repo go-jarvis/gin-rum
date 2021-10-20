@@ -5,23 +5,23 @@
 这一篇就找回来。
 
 
-## GoftGroup
+## RumGroup
 
-首先，需要对原来的 `gin.RouterGroup` 进行一定的扩展。 在 [goft_group.go](/goft/goft_group.go) 中我们自己封装一个 `GoftGroup`， 在其中 **匿名嵌套** `*gin.RouterGroup`
+首先，需要对原来的 `gin.RouterGroup` 进行一定的扩展。 在 [rum_group.go](/rum/rum_group.go) 中我们自己封装一个 `RumGroup`， 在其中 **匿名嵌套** `*gin.RouterGroup`
 
 ```go
-type GoftGroup struct {
+type RumGroup struct {
 	*gin.RouterGroup
 }
 ```
 
 在 gin 中， engine 的 `Handle()` 也是直接调用了嵌套的 `gin.RouterGroup` 的 `Handle` 方法。 
-因此， goft 的 `Mount()` 也同样下放到 `GoftGroup` 的 `Mount()` 中
+因此， rum 的 `Mount()` 也同样下放到 `RumGroup` 的 `Mount()` 中
 
 ```go
-// Mount 在 GoftGroup 上绑定/注册 控制器
-func (gg *GoftGroup) Mount(group string, claess ...ClassController) *GoftGroup {
-	grp := newGoftGroup(gg, group)
+// Mount 在 RumGroup 上绑定/注册 控制器
+func (gg *RumGroup) Mount(group string, claess ...ClassController) *RumGroup {
+	grp := newRumGroup(gg, group)
 
 	for _, class := range claess {
 		class.Build(grp)
@@ -33,54 +33,54 @@ func (gg *GoftGroup) Mount(group string, claess ...ClassController) *GoftGroup {
 
 与之对应的， `ClassController` 的接口也需要做相应的调整。
 
-[class_controller.go](/goft/class_controller.go)
+[class_controller.go](/rum/class_controller.go)
 
 ```go
 type ClassController interface {
-	// Build(goft *Goft)  // 旧的
-	Build(goft *GoftGroup)
+	// Build(rum *Rum)  // 旧的
+	Build(rum *RumGroup)
 }
 ```
 
 在实现的 `ClassController` 接口的 **控制器** 中也需要进行响应调整。
 
-[index.go](/cmd/goft/classes/index.go#L20)
+[index.go](/cmd/rum/classes/index.go#L20)
 
 ```go
-func (index *Index) Build(goft *goft.GoftGroup) {
-	goft.Handle("GET", "/index", handlerIndex)
+func (index *Index) Build(rum *rum.RumGroup) {
+	rum.Handle("GET", "/index", handlerIndex)
 }
 ```
 
 
-## Goft 改造
+## Rum 改造
 
-首先， Goft 不能在直接使用 `gin.RouterGroup` 了， 而是使用封装之后的 `GoftGroup`
+首先， Rum 不能在直接使用 `gin.RouterGroup` 了， 而是使用封装之后的 `RumGroup`
 
 ```go
-type Goft struct {
+type Rum struct {
 	*gin.Engine
 	// rg *gin.RouterGroup
-	gg *GoftGroup
+	gg *RumGroup
 }
 ```
 
 ### Mount
 
-对于控制器中路由的挂载， 就直接下沉给 `GoftGroup` 执行。 为了下沉的时候遇到 GoftGroup 为 nil 发生 panic 的情况， 做了一个安全保护。
+对于控制器中路由的挂载， 就直接下沉给 `RumGroup` 执行。 为了下沉的时候遇到 RumGroup 为 nil 发生 panic 的情况， 做了一个安全保护。
 
 ```go
 // Mount 挂载控制器
-// 03.1. 关联控制器与 goft
-// 03.2. 返回 *GoftGroup 是为了方便链式调用
-func (goft *Goft) Mount(group string, classes ...ClassController) *GoftGroup {
+// 03.1. 关联控制器与 rum
+// 03.2. 返回 *RumGroup 是为了方便链式调用
+func (rum *Rum) Mount(group string, classes ...ClassController) *RumGroup {
 
 	// 04.1. 注册路由组
-	if goft.gg == nil {
-		goft.gg = baseGoftGroup(goft, "/")
+	if rum.gg == nil {
+		rum.gg = baseRumGroup(rum, "/")
 	}
 
-	return goft.gg.Mount(group, classes...)
+	return rum.gg.Mount(group, classes...)
 }
 ```
 
@@ -92,14 +92,14 @@ func (goft *Goft) Mount(group string, classes ...ClassController) *GoftGroup {
 http://127.0.0.1/demo/v1/api
 ```
 
-为了更好的兼容这种情况， 在 Goft 中增加了 `BasePath` 方法， 以设置 uri 的 prefix。
+为了更好的兼容这种情况， 在 Rum 中增加了 `BasePath` 方法， 以设置 uri 的 prefix。
 
 ```go
-// BasePath 设置 Goft 的根路由
-func (goft *Goft) BasePath(group string) *Goft {
-	goft.gg = baseGoftGroup(goft, group)
+// BasePath 设置 Rum 的根路由
+func (rum *Rum) BasePath(group string) *Rum {
+	rum.gg = baseRumGroup(rum, group)
 
-	return goft
+	return rum
 }
 ```
 
@@ -116,8 +116,8 @@ func (goft *Goft) BasePath(group string) *Goft {
 ```go
 func main() {
 
-	// 1. 使用 goft 代替 gin
-	g := goft.Default()
+	// 1. 使用 rum 代替 gin
+	g := rum.Default()
 
 	// 2. 设置 base Path
 	g.BasePath("/demo")
@@ -130,7 +130,7 @@ func main() {
 		v2Router.Mount("/v3", classes.NewIndex())
 	}
 
-	// 3. 启动 goft server
+	// 3. 启动 rum server
 	g.Launch()
 }
 ```
@@ -139,27 +139,27 @@ func main() {
 
 ```bash
 cd cmd/demo/ && go run .
-[GIN-debug] GET    /demo/v1/index            --> github.com/tangx-labs/gin-goft/cmd/demo/classes.handlerIndex (3 handlers)
-[GIN-debug] GET    /demo/v2/v3/index         --> github.com/tangx-labs/gin-goft/cmd/demo/classes.handlerIndex (3 handlers)
+[GIN-debug] GET    /demo/v1/index            --> github.com/tangx-labs/gin-rum/cmd/demo/classes.handlerIndex (3 handlers)
+[GIN-debug] GET    /demo/v2/v3/index         --> github.com/tangx-labs/gin-rum/cmd/demo/classes.handlerIndex (3 handlers)
 [GIN-debug] Listening and serving HTTP on :8089
 ```
 
 
 ### 删除重载的 Handle 方法
 
-由于 Mount 下沉到 GoftGroup 中实现之后， goft 本身也没有必再重载 `Handle` 方法了， 因此这部分代码将被删除。
+由于 Mount 下沉到 RumGroup 中实现之后， rum 本身也没有必再重载 `Handle` 方法了， 因此这部分代码将被删除。
 
 
 ## 目录结构调整
 
-1. 对 project 的名字进行了修改， 由 `goft` 改成 `demo` 。 
-    1. 以避免和框架的 `goft` 产生语意冲突
-    2. 该为 demo 能更好的说明这部分代码非框架 goft 的一部分。
+1. 对 project 的名字进行了修改， 由 `rum` 改成 `demo` 。 
+    1. 以避免和框架的 `rum` 产生语意冲突
+    2. 该为 demo 能更好的说明这部分代码非框架 rum 的一部分。
 2. 将 `classes` 移动到 `/cmd/demo/classes` 中。
 
 这样目录结构就比较清晰了
 
-1. `/goft` 是针对 gin 二次封装的框架代码
-2. `/cmd/demo` 是使用 `goft` 框架的用例测试代码
+1. `/rum` 是针对 gin 二次封装的框架代码
+2. `/cmd/demo` 是使用 `rum` 框架的用例测试代码
 3. `/docs` 是说明文档。
 

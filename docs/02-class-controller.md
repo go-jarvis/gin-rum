@@ -22,12 +22,12 @@ func (index *Index) Build() {
 
 func handlerIndex(c *gin.Context) {
 	c.JSON(200, map[string]string{
-		"hello": "gin-goft",
+		"hello": "gin-rum",
 	})
 }
 ```
 
-最后， 在 [main.go](/cmd/goft/main.go) 中创建 Index 副本并注册路由
+最后， 在 [main.go](/cmd/rum/main.go) 中创建 Index 副本并注册路由
 
 ```go
 func main() {

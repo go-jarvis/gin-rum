@@ -1,4 +1,4 @@
-package goft
+package rum
 
 import (
 	"github.com/gin-gonic/gin"

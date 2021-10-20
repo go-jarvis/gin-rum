@@ -1,4 +1,4 @@
-package goft
+package rum
 
 import (
 	"net/http"
@@ -7,27 +7,27 @@ import (
 	"github.com/tangx/ginbinder"
 )
 
-type GoftGroup struct {
+type RumGroup struct {
 	*gin.RouterGroup
 }
 
-// baseGoftGroup 通过 Goft 返回一个根 GoftGroup
-func baseGoftGroup(r *Goft, group string) *GoftGroup {
-	return &GoftGroup{
+// baseRumGroup 通过 Rum 返回一个根 RumGroup
+func baseRumGroup(r *Rum, group string) *RumGroup {
+	return &RumGroup{
 		RouterGroup: r.Group(group),
 	}
 }
 
-// newGoftGroup 通过 GoftGroup 扩展新的 GoftGroup
-func newGoftGroup(base *GoftGroup, group string) *GoftGroup {
-	return &GoftGroup{
+// newRumGroup 通过 RumGroup 扩展新的 RumGroup
+func newRumGroup(base *RumGroup, group string) *RumGroup {
+	return &RumGroup{
 		RouterGroup: base.Group(group),
 	}
 }
 
-// Mount 在 GoftGroup 上绑定/注册 控制器
-func (gg *GoftGroup) Mount(group string, classes ...ClassController) *GoftGroup {
-	grp := newGoftGroup(gg, group)
+// Mount 在 RumGroup 上绑定/注册 控制器
+func (gg *RumGroup) Mount(group string, classes ...ClassController) *RumGroup {
+	grp := newRumGroup(gg, group)
 
 	for _, class := range classes {
 		grp.Handle(class)
@@ -37,11 +37,11 @@ func (gg *GoftGroup) Mount(group string, classes ...ClassController) *GoftGroup 
 }
 
 // Attach 绑定/注册 中间件
-func (gg *GoftGroup) Attach(fairs ...Fairing) {
+func (gg *RumGroup) Attach(fairs ...Fairing) {
 	gg.attach(fairs...)
 }
 
-func (gg *GoftGroup) attach(fairs ...Fairing) {
+func (gg *RumGroup) attach(fairs ...Fairing) {
 	for _, fair := range fairs {
 		fair := fair
 
@@ -61,7 +61,7 @@ func (gg *GoftGroup) attach(fairs ...Fairing) {
 			// 	return
 			// }
 
-			// 由于 goft 是一个框架， 不应该对任何已经放行的中间件做任何阻拦
+			// 由于 rum 是一个框架， 不应该对任何已经放行的中间件做任何阻拦
 			// 如果需要中断， 可以在业务实现的中间件本身中进行阻拦。
 			_ = fair.OnRequest(c)
 			c.Next()
@@ -72,8 +72,8 @@ func (gg *GoftGroup) attach(fairs ...Fairing) {
 	}
 }
 
-// Handle 重载 GoftGroup 的 Handle 方法
-func (gg *GoftGroup) Handle(class ClassController) {
+// Handle 重载 RumGroup 的 Handle 方法
+func (gg *RumGroup) Handle(class ClassController) {
 
 	m := class.Method()
 	p := class.Path()

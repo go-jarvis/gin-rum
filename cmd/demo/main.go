@@ -1,14 +1,14 @@
 package main
 
 import (
-	"github.com/tangx-labs/gin-goft/cmd/demo/classes"
-	"github.com/tangx-labs/gin-goft/goft"
+	"github.com/go-jarvis/gin-rum/cmd/demo/classes"
+	"github.com/go-jarvis/gin-rum/rum"
 )
 
 func main() {
 
-	// 1. 使用 goft 代替 gin
-	g := goft.Default()
+	// 1. 使用 rum 代替 gin
+	g := rum.Default()
 	// g.Attach(&middlewares.User{})
 
 	// 2. 设置 base Path
@@ -26,6 +26,6 @@ func main() {
 
 	}
 
-	// 3. 启动 goft server
+	// 3. 启动 rum server
 	g.Launch()
 }

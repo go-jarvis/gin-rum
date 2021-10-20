@@ -1,4 +1,4 @@
-module github.com/tangx-labs/gin-goft
+module github.com/go-jarvis/gin-rum
 
 go 1.17
 

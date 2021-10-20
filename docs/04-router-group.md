@@ -2,12 +2,12 @@
 
 在 gin 中有路由组的概念， 可以理解为路由的 prefix。
 
-## goft 增加路由组
+## rum 增加路由组
 
-1. 在 Goft 中增加路由组 `rg *gin.RouterGroup`
+1. 在 Rum 中增加路由组 `rg *gin.RouterGroup`
 
 ```go
-type Goft struct {
+type Rum struct {
 	*gin.Engine
 	rg *gin.RouterGroup
 }
@@ -17,35 +17,35 @@ type Goft struct {
 
 ```go
 // Mount 参数中增加了 group 的传参
-func (goft *Goft) Mount(group string, classes ...ClassController) *Goft {
+func (rum *Rum) Mount(group string, classes ...ClassController) *Rum {
 
 	// 04.1. 注册路由组
-	goft.rg = goft.Group(group)
+	rum.rg = rum.Group(group)
 
 	for _, class := range classes {
-		// 03.3. 将 goft 传入到控制器中
-		class.Build(goft)
+		// 03.3. 将 rum 传入到控制器中
+		class.Build(rum)
 	}
 
-	return goft
+	return rum
 }
 ```
 
-有了 group name 之后， 肯定是要将其注册到 goft engine 中。  
+有了 group name 之后， 肯定是要将其注册到 rum engine 中。  
 
 ```go
-goft.rg = goft.Group(group)
+rum.rg = rum.Group(group)
 ```
 
-3. 为了能在不改变控制器的情况下使用 **路由组** 路径， 需要 **重载** goft 的 `Handle` 方法。
+3. 为了能在不改变控制器的情况下使用 **路由组** 路径， 需要 **重载** rum 的 `Handle` 方法。
 
 ```go
 // Handle 重载 gin.Engine 的 Handle 方法。
 // 04.2. 这样子路由注册的时候， 就直接挂载到了 RouterGroup 上， 有了层级关系
-func (goft *Goft) Handle(httpMethod, relativePath string, handlers ...gin.HandlerFunc) {
-	goft.rg.Handle(httpMethod, relativePath, handlers...)
+func (rum *Rum) Handle(httpMethod, relativePath string, handlers ...gin.HandlerFunc) {
+	rum.rg.Handle(httpMethod, relativePath, handlers...)
 
-    return goft
+    return rum
 }
 ```
 
@@ -54,7 +54,7 @@ func (goft *Goft) Handle(httpMethod, relativePath string, handlers ...gin.Handle
 
 ## 挂载路由组
 
-在 [main.go](/cmd/goft/main.go) 中， 为 Mount 方法增加路由组 `v1`， 并添加了一个新的路由组 `v2`
+在 [main.go](/cmd/rum/main.go) 中， 为 Mount 方法增加路由组 `v1`， 并添加了一个新的路由组 `v2`
 
 ```go
 	// 2. 注册路由
@@ -70,12 +70,12 @@ func (goft *Goft) Handle(httpMethod, relativePath string, handlers ...gin.Handle
 启动服务后，可以看到两组路由， v1 和 v2
 
 ```bash
-# cd cmd/goft/ && go run .
-[GIN-debug] GET    /v1/                      --> github.com/tangx-labs/gin-goft/classes.handlerIndex (3 handlers)
-[GIN-debug] GET    /v2/                      --> github.com/tangx-labs/gin-goft/classes.handlerIndex (3 handlers)
+# cd cmd/rum/ && go run .
+[GIN-debug] GET    /v1/                      --> github.com/tangx-labs/gin-rum/classes.handlerIndex (3 handlers)
+[GIN-debug] GET    /v2/                      --> github.com/tangx-labs/gin-rum/classes.handlerIndex (3 handlers)
 [GIN-debug] Listening and serving HTTP on :8089
 ```
 
 ## 遗留问题
 
-在 gin 中， RouterGroup 是可以一级一级往下扩展的。 但是在当前 goft 中所有的路由组都是挂载到 `gin.Engine` 上的， 所以就丢失了这个功能。
+在 gin 中， RouterGroup 是可以一级一级往下扩展的。 但是在当前 rum 中所有的路由组都是挂载到 `gin.Engine` 上的， 所以就丢失了这个功能。

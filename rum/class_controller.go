@@ -1,4 +1,4 @@
-package goft
+package rum
 
 type ClassController interface {
 	Method() string

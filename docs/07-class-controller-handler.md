@@ -1,6 +1,6 @@
 # 控制器优化 - 更好用的控制器模式
 
-之前在 [业务控制器模型](./02-class-controller.md) 中实现了一个简单的控制器模型， struct 对对象具有 `Build()` 方法， 就可以在 goft 中注册路由。
+之前在 [业务控制器模型](./02-class-controller.md) 中实现了一个简单的控制器模型， struct 对对象具有 `Build()` 方法， 就可以在 rum 中注册路由。
 
 ```go
 // 第一版注册起方法
@@ -8,14 +8,14 @@ type Index struct {
 	Name string `query:""` 
 }
 
-func (index *Index) Build(goft *goft.GoftGroup) {
-	goft.Handle("GET", "/index", handlerIndex)
+func (index *Index) Build(rum *rum.RumGroup) {
+	rum.Handle("GET", "/index", handlerIndex)
 }
 
 func handlerIndex(c *gin.Context) {
 	name:=c.Query("name")
 	c.JSON(200, map[string]string{
-		"hello": "gin-goft, " + name,
+		"hello": "gin-rum, " + name,
 	})
 }
 ```
@@ -31,16 +31,16 @@ func handlerIndex(c *gin.Context) {
 
 ## 控制器优化
 
-那要如何在 struct 定义的时候， 一站式完成所有需求约束呢？ 要这么样 goft 框架帮忙处理这些冗余操作呢？
+那要如何在 struct 定义的时候， 一站式完成所有需求约束呢？ 要这么样 rum 框架帮忙处理这些冗余操作呢？
 
-分析 goft.Handle 的参数， 分别是
+分析 rum.Handle 的参数， 分别是
 
 1. http 行为方法
 2. 相对路由地址
 3. 处理业务行为的 handler
 
 ```go
-goft.Handle("GET", "/index", handlerIndex)
+rum.Handle("GET", "/index", handlerIndex)
 
 func (group *RouterGroup) Handle(httpMethod, relativePath string, handlers ...HandlerFunc)
 ```
@@ -51,7 +51,7 @@ func (group *RouterGroup) Handle(httpMethod, relativePath string, handlers ...Ha
 
 1. `Method() string` 方法: 返回 http 方法的值
 2. `Path() string` 方法: 返回相对路由地址
-3. `Handler() (interface{}, error)` 方法: 业务逻辑行为， 最终将被被 goft 封装成 handler 执行。
+3. `Handler() (interface{}, error)` 方法: 业务逻辑行为， 最终将被被 rum 封装成 handler 执行。
 
 ```go
 type ClassController interface {
@@ -66,9 +66,9 @@ type ClassController interface {
 既然控制器的接口已经变了， 那么响应的行为也需要进行变更。
 
 ```go
-// Mount 在 GoftGroup 上绑定/注册 控制器
-func (gg *GoftGroup) Mount(group string, classes ...ClassController) *GoftGroup {
-	grp := newGoftGroup(gg, group)
+// Mount 在 RumGroup 上绑定/注册 控制器
+func (gg *RumGroup) Mount(group string, classes ...ClassController) *RumGroup {
+	grp := newRumGroup(gg, group)
 
 	// 老方法
 	// for _, class := range claess {
@@ -84,17 +84,17 @@ func (gg *GoftGroup) Mount(group string, classes ...ClassController) *GoftGroup 
 }
 ```
 
-之前老方法是将 GoftGroup 作为结构体的 Build 方法的参数传递到内部进行处理。新方法中为了能 **简化请求参数的绑定和错误处理**， 因此不能再将 GoftGroup 传递下去了。
+之前老方法是将 RumGroup 作为结构体的 Build 方法的参数传递到内部进行处理。新方法中为了能 **简化请求参数的绑定和错误处理**， 因此不能再将 RumGroup 传递下去了。
 
-重载之后的的 GoftGroup.Handle 方法以 **结构体对象** 作为参数
+重载之后的的 RumGroup.Handle 方法以 **结构体对象** 作为参数
 1. 通过 `Method()` 和 `Path()` 方法获取必要参数
 2. 将 `Handler()` 方法封装成为 `gin.HandlerFunc`
     + 使用 [ginbinder](https://github.com/tangx/ginbinder) 库读取 request 中的所有需要参数
     + 根据 `Handler()` 方法的结构，封装 gin 的返回结果。
 
 ```go
-// Handle 重载 GoftGroup 的 Handle 方法
-func (gg *GoftGroup) Handle(class ClassController) {
+// Handle 重载 RumGroup 的 Handle 方法
+func (gg *RumGroup) Handle(class ClassController) {
 
 	m := class.Method()
 	p := class.Path()
@@ -138,9 +138,9 @@ type ClassController interface {
 }
 ```
 
-## GoftGroup.Handle 重载引起的 Fairing 控制器行为不兼容
+## RumGroup.Handle 重载引起的 Fairing 控制器行为不兼容
 
-之前在实现 Fairing 控制器的时候，为了方便 `Goft` 和 `GoftGroup` 加载中间件的行为，使用了 `gin.IRoutes` 进行参数约束。
+之前在实现 Fairing 控制器的时候，为了方便 `Rum` 和 `RumGroup` 加载中间件的行为，使用了 `gin.IRoutes` 进行参数约束。
 
 ```go
 func attachFairings(iroute gin.IRoutes, fairs ...Fairing) {
@@ -157,19 +157,19 @@ func attachFairings(iroute gin.IRoutes, fairs ...Fairing) {
 }
 ```
 
-但是在重载 `GoftGroup` 的 Handle 方法之后签名发生了改变, 由 `Handle(string, string, ...HandlerFunc) IRoutes` 变成了 `Handle(class ClassController)`。 因此引发了不兼容的情况。
+但是在重载 `RumGroup` 的 Handle 方法之后签名发生了改变, 由 `Handle(string, string, ...HandlerFunc) IRoutes` 变成了 `Handle(class ClassController)`。 因此引发了不兼容的情况。
 
 ```go
-type Goft struct {
+type Rum struct {
 	*gin.Engine
-	rootGrp *GoftGroup
+	rootGrp *RumGroup
 }
 ```
 
-因此最 Attach 也做了响应的改造。 将 Fairing 的接收者直接设置为了 GoftGroup 。
+因此最 Attach 也做了响应的改造。 将 Fairing 的接收者直接设置为了 RumGroup 。
 
 ```go
-func (gg *GoftGroup) attach(fairs ...Fairing) {
+func (gg *RumGroup) attach(fairs ...Fairing) {
 	for _, fair := range fairs {
 		fair := fair
 
