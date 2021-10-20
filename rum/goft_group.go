@@ -26,22 +26,22 @@ func newRumGroup(base *RumGroup, group string) *RumGroup {
 }
 
 // Mount 在 RumGroup 上绑定/注册 控制器
-func (gg *RumGroup) Mount(group string, classes ...ClassController) *RumGroup {
-	grp := newRumGroup(gg, group)
+func (grp *RumGroup) Mount(group string, classes ...ClassController) *RumGroup {
+	new := newRumGroup(grp, group)
 
 	for _, class := range classes {
-		grp.Handle(class)
+		new.Handle(class)
 	}
 
-	return grp
+	return new
 }
 
 // Attach 绑定/注册 中间件
-func (gg *RumGroup) Attach(fairs ...Fairing) {
-	gg.attach(fairs...)
+func (grp *RumGroup) Attach(fairs ...Fairing) {
+	grp.attach(fairs...)
 }
 
-func (gg *RumGroup) attach(fairs ...Fairing) {
+func (grp *RumGroup) attach(fairs ...Fairing) {
 	for _, fair := range fairs {
 		fair := fair
 
@@ -68,12 +68,12 @@ func (gg *RumGroup) attach(fairs ...Fairing) {
 		}
 
 		// 使用 中间件
-		gg.Use(handler)
+		grp.Use(handler)
 	}
 }
 
 // Handle 重载 RumGroup 的 Handle 方法
-func (gg *RumGroup) Handle(class ClassController) {
+func (grp *RumGroup) Handle(class ClassController) {
 
 	m := class.Method()
 	p := class.Path()
@@ -100,5 +100,5 @@ func (gg *RumGroup) Handle(class ClassController) {
 	}
 
 	// 调用 gin RouterGroup 的 Handle 方法注册路由
-	gg.RouterGroup.Handle(m, p, handlerFunc)
+	grp.RouterGroup.Handle(m, p, handlerFunc)
 }
