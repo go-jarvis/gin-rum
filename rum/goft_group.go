@@ -14,19 +14,19 @@ type RumGroup struct {
 // baseRumGroup 通过 Rum 返回一个根 RumGroup
 func baseRumGroup(r *Rum, group string) *RumGroup {
 	return &RumGroup{
-		RouterGroup: r.Group(group),
+		RouterGroup: r.RouterGroup.Group(group),
 	}
 }
 
 // newRumGroup 通过 RumGroup 扩展新的 RumGroup
 func newRumGroup(base *RumGroup, group string) *RumGroup {
 	return &RumGroup{
-		RouterGroup: base.Group(group),
+		RouterGroup: base.RouterGroup.Group(group),
 	}
 }
 
-// AddGroup 在 RumGroup 上绑定/注册 控制器
-func (grp *RumGroup) AddGroup(group string, classes ...ClassController) *RumGroup {
+// Group 在 RumGroup 上绑定/注册 控制器
+func (grp *RumGroup) Group(group string, classes ...ClassController) *RumGroup {
 	new := newRumGroup(grp, group)
 	for _, class := range classes {
 		new.Handle(class)

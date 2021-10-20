@@ -16,14 +16,14 @@ func main() {
 
 	// 2. 注册多个路由组
 	// g.AddGroup("/v1", classes.NewIndex())
-	g.AddGroup("/v1").Handle(classes.NewIndex())
+	g.Group("/v1").Handle(classes.NewIndex())
 
 	{
-		v2Router := g.AddGroup("/v2")
+		v2Router := g.Group("/v2")
 		// 子路由注册中间件
 		// v2Router.Attach(middlewares.NewUser())
 
-		v2Router.AddGroup("/v3", classes.NewIndex())
+		v2Router.Group("/v3", classes.NewIndex())
 
 	}
 

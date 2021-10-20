@@ -38,11 +38,13 @@ func (rum *Rum) Run() error {
 	return rum.Engine.Run(":8089")
 }
 
-// AddGroup 扩展路由组， 可以顺带增加几个控制器
-func (rum *Rum) AddGroup(group string, classes ...ClassController) *RumGroup {
+// Group 扩展路由组， 可以顺带增加几个控制器
+func (rum *Rum) Group(group string, classes ...ClassController) *RumGroup {
 	// 04.1. 注册路由组
-	return rum.rootGrp.AddGroup(group, classes...)
+	return rum.rootGrp.Group(group, classes...)
 }
+
+// func (rum *Rum) Group() {}
 
 // BasePath 设置 Rum 的根路由
 func (rum *Rum) BasePath(group string) *Rum {
