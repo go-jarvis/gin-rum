@@ -1,6 +1,7 @@
 package classes
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/go-jarvis/gin-rum/httpx"
@@ -21,7 +22,7 @@ func (index *Index) Path() string {
 }
 
 // wanted
-func (index *Index) Handler() (interface{}, error) {
+func (index *Index) Handler(ctx context.Context) (interface{}, error) {
 	if index.Name != "wangwu" {
 		return nil, fmt.Errorf("invalid user: %s", index.Name)
 	}

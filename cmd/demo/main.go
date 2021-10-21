@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/go-jarvis/gin-rum/cmd/demo/adaptors/db"
 	"github.com/go-jarvis/gin-rum/cmd/demo/classes"
 	"github.com/go-jarvis/gin-rum/cmd/demo/middlewares"
 	"github.com/go-jarvis/gin-rum/rum"
@@ -10,6 +11,9 @@ func main() {
 
 	// 1. 使用 rum 代替 gin
 	g := rum.Default()
+	g.WithContext(
+		db.WithGormDB(db.NewGormDB()),
+	)
 	g.Use(&middlewares.CorsMid{})
 
 	app := g.Group("demo")
@@ -17,7 +21,7 @@ func main() {
 	// 2. 注册多个路由组
 	// g.AddGroup("/v1", classes.NewIndex())
 	v1 := app.Group("/v1", classes.NewIndex())
-	v1.Handle(&classes.User{})
+	v1.Handle(&classes.GetUserByID{})
 
 	{
 		v2 := app.Group("/v2")

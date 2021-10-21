@@ -1,6 +1,8 @@
 package rum
 
 import (
+	"context"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -14,25 +16,21 @@ type Rum struct {
 // Default 创建一个默认的 Engine
 func Default() *Rum {
 	r := gin.Default()
-	return NewWithEngine(r)
+	ctx := context.TODO()
+	return NewWithEngine(ctx, r)
 }
 
 // NewWithEngine 使用自定义 gin engine 创建
-func NewWithEngine(e *gin.Engine) *Rum {
+func NewWithEngine(ctx context.Context, e *gin.Engine) *Rum {
 	rum := &Rum{
 		Engine: e,
 	}
 
-	rum.initial()
+	if rum.rootGrp == nil {
+		rum.rootGrp = baseRumGroup(ctx, rum, "/")
+	}
 
 	return rum
-}
-
-// initial 初始化 Rum
-func (rum *Rum) initial() {
-	if rum.rootGrp == nil {
-		rum.rootGrp = baseRumGroup(rum, "/")
-	}
 }
 
 // Run 启动 gin-rum server。
@@ -52,6 +50,12 @@ func (rum *Rum) Use(fairs ...Fairing) IRumRoutes {
 	return rum
 }
 
-func (rum *Rum) Handle(class ClassController) {
+// Handle 绑定路由信息
+func (rum *Rum) Handle(class ClassController) IRumRoutes {
 	rum.rootGrp.Handle(class)
+	return rum
+}
+
+func (rum *Rum) WithContext(fns ...ContextFunc) {
+	rum.rootGrp.WithContext(fns...)
 }

@@ -1,6 +1,7 @@
 package rum
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -14,19 +15,22 @@ type IRumRouter interface {
 
 type IRumRoutes interface {
 	Use(fairs ...Fairing) IRumRoutes
-	Handle(class ClassController)
+	Handle(class ClassController) IRumRoutes
+	WithContext(fns ...ContextFunc)
 }
 
 var _ IRumRouter = &RumGroup{}
 
 type RumGroup struct {
 	*gin.RouterGroup
+	ctx context.Context
 }
 
 // baseRumGroup 通过 Rum 返回一个根 RumGroup
-func baseRumGroup(r *Rum, group string) *RumGroup {
+func baseRumGroup(ctx context.Context, r *Rum, group string) *RumGroup {
 	return &RumGroup{
 		RouterGroup: r.RouterGroup.Group(group),
+		ctx:         ctx,
 	}
 }
 
@@ -34,6 +38,7 @@ func baseRumGroup(r *Rum, group string) *RumGroup {
 func newRumGroup(base *RumGroup, group string) *RumGroup {
 	return &RumGroup{
 		RouterGroup: base.RouterGroup.Group(group),
+		ctx:         base.ctx,
 	}
 }
 
@@ -85,7 +90,7 @@ func (grp *RumGroup) use(fairs ...Fairing) IRumRoutes {
 }
 
 // Handle 重载 RumGroup 的 Handle 方法
-func (grp *RumGroup) Handle(class ClassController) {
+func (grp *RumGroup) Handle(class ClassController) IRumRoutes {
 
 	m := class.Method()
 	p := class.Path()
@@ -101,7 +106,8 @@ func (grp *RumGroup) Handle(class ClassController) {
 		}
 
 		// 执行业务逻辑，获取返回值
-		v, err := handler()
+		// 向 class 控制器转入注入的上下文信息
+		v, err := handler(grp.ctx)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, err.Error())
 			return
@@ -113,4 +119,16 @@ func (grp *RumGroup) Handle(class ClassController) {
 
 	// 调用 gin RouterGroup 的 Handle 方法注册路由
 	grp.RouterGroup.Handle(m, p, handlerFunc)
+
+	return grp
+}
+
+type ContextFunc = func(context.Context) context.Context
+
+// WithContext 向 RumGoft 中注入任何内容
+// 以向 class 控制器传递
+func (grp *RumGroup) WithContext(fns ...ContextFunc) {
+	for _, fn := range fns {
+		grp.ctx = fn(grp.ctx)
+	}
 }
