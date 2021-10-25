@@ -11,7 +11,7 @@ type contextGormDBType int
 
 var contextGormDBKey contextGormDBType = 0
 
-func WithGormDB(value interface{}) func(context.Context) context.Context {
+func WithGormDB(value *gorm.DB) func(context.Context) context.Context {
 	return func(ctx context.Context) context.Context {
 		return context.WithValue(ctx, contextGormDBKey, value)
 	}
