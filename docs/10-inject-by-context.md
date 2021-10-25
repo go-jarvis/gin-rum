@@ -154,6 +154,9 @@ func (c *valueCtx) Value(key interface{}) interface{} {
 }
 ```
 
+测试代码参考 [context-Context-and-gin-Context](https://github.com/tangx-labs/context-Context-and-gin-Context)
+
+
 ### 遗留问题
 
 由于使用了自建的 GroupGroup Context， 并且 gin.Context 没有交叉点。 因此 gin.Context 中与 **Cancel** 相关的方法也无法传递到 ClassController 中的 Handler 方法中。
